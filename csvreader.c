@@ -10,20 +10,22 @@ int main( int argc, char* argv[] ){
     
     char *file = argv[1];
 
+    struct arq_csv* csv = open_csv(file);
+ 
     int op;
     do{
 
-        exibe_menu();
+        menu();
         scanf("%d", &op);
         getchar();
         
         switch (op){
             
             case 1:
-                exibe_sumario(file);
+                summary(csv);
                 break;
             case 2:
-                mostra(file);
+                show(csv);
                 break;
             case 3:
                 break;
@@ -32,5 +34,6 @@ int main( int argc, char* argv[] ){
         }
     } while (op != 3);
 
+    
     return 0;
 }

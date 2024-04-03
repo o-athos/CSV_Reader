@@ -81,7 +81,11 @@ void read_csv (struct arq_csv *csv){
             fprintf(stderr, "Erro de alocação de memória.\n");
             exit(EXIT_FAILURE);
         }
+        for (unsigned long j = 0; j < csv->columns; j++){
+            csv->data[i][j] = (char *)malloc(30 * sizeof(char));
+        }
     }
+
  
     // Lendo os dados e preenchendo a matriz   
     unsigned long l = 0;
@@ -92,12 +96,12 @@ void read_csv (struct arq_csv *csv){
         
         while (token != NULL){
 
-            csv->data[l][c] = (char *)malloc((strlen(token) + 1) * sizeof(char));
+/*            csv->data[l][c] = (char *)malloc((strlen(token) + 1) * sizeof(char));
             if (csv->data[l][c] == NULL){
                 fprintf(stderr, "Erro de alocação de memoria");
                 exit(EXIT_FAILURE);
             }
-
+*/
             strcpy(csv->data[l][c], token);
             c++;
             token = separate(token + (strlen(token) +1));

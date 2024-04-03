@@ -39,8 +39,12 @@ char* separate (char* lines){
     if (!lines) return 0;
 
     pos_comma = strchr(lines, ',');
-
-    if (!pos_comma) return 0;
+    
+    if (!pos_comma){
+        if (strlen(lines) > 0)
+            return lines;
+        return 0;
+    }
 
     *pos_comma = '\0';
 
@@ -52,21 +56,23 @@ void read_csv (struct arq_csv *csv){
 
     char buffer[1024];
     char *token;
-
+    short count, base;
     while (fgets(buffer, sizeof(buffer), csv->arq) != NULL){
+        base = strlen(buffer);
         csv->lines++;
         char* token = separate(buffer);
-
+        count = strlen(token) + 1;
+        
         unsigned long aux_col = 1;
-        while ((token = separate(token + (strlen(token) + 1)))){
+        while (count < base){
+            token = separate(token + (strlen(token) + 1));
             aux_col++;
+            count += (strlen(token) + 1);
         }
-        aux_col++;
 
         if (aux_col > csv->columns)
             csv->columns = aux_col;  
     }
-    
     rewind(csv->arq);
 
 
@@ -90,11 +96,13 @@ void read_csv (struct arq_csv *csv){
     // Lendo os dados e preenchendo a matriz   
     unsigned long l = 0;
     while (fgets (buffer, sizeof(buffer), csv->arq) != NULL){
+        base = strlen(buffer);
         token = separate(buffer);
+        count = strlen(token) + 1;
         
         unsigned long c = 0;
         
-        while (token != NULL){
+        while (count < base){
 
 /*            csv->data[l][c] = (char *)malloc((strlen(token) + 1) * sizeof(char));
             if (csv->data[l][c] == NULL){
@@ -105,7 +113,10 @@ void read_csv (struct arq_csv *csv){
             strcpy(csv->data[l][c], token);
             c++;
             token = separate(token + (strlen(token) +1));
-        }
+            count += (strlen(token) + 1);
+        } 
+        strcpy(csv->data[l][c], token);
+        
         l++;
     }
 }

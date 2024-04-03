@@ -11,6 +11,8 @@ int main( int argc, char* argv[] ){
     char *file = argv[1];
 
     struct arq_csv* csv = open_csv(file);
+    read_csv (csv);
+    analyze_csv (csv);
  
     int op;
     do{
@@ -25,7 +27,7 @@ int main( int argc, char* argv[] ){
                 summary(csv);
                 break;
             case 2:
-                show(csv);
+//                show(csv);
                 break;
             case 3:
                 break;

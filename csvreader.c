@@ -13,7 +13,6 @@ int main( int argc, char* argv[] ){
     struct arq_csv* csv = open_csv(file);
     read_csv (csv);
     analyze_csv (csv);
- 
     int op;
     do{
 
@@ -27,15 +26,19 @@ int main( int argc, char* argv[] ){
                 summary(csv);
                 break;
             case 2:
-//                show(csv);
+                show(csv);
                 break;
             case 3:
+                filtering(csv);
+                break;
+            case 9:
                 break;
             default:
                 printf("Opção inválida. Por favor, escolha novamente.\n");
         }
-    } while (op != 3);
+    } while (op != 9);
 
+    close_csv(csv);
     
     return 0;
 }

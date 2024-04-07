@@ -5,6 +5,8 @@ void menu(){
     printf("1) Sumário do Arquivo\n");
     printf("2) Mostrar\n");
     printf("3) Filtros\n");
+    printf("4) Descrição dos dados\n");
+    printf("5) Ordenação\n");
     printf("9) Fim\n");
 }
 
@@ -25,7 +27,6 @@ struct arq_csv* open_csv (char *path){
 
     csv->lines = 0;
     csv->columns = 0;
-    csv->pos = 0;
     csv->types = NULL;
     csv->sizes = NULL;
     csv->data = NULL;
@@ -53,7 +54,7 @@ void close_csv (struct arq_csv *csv){
         for (unsigned long j = 0; j < csv->columns; j++){
             free(csv->types[j]);
         }
-//        free(csv->types);
+        free(csv->types);
     }
 
     if (csv->sizes != NULL){
@@ -239,9 +240,9 @@ void analyze_csv (struct arq_csv *csv){
     // Preenche o vetor com os tipos 'N' ou 'S' dependendo do dado
     for (unsigned long j = 0; j < csv->columns; j++){
         if (atof(csv->data[1][j])  == 0)
-            csv->types[j] = "S";
+            strcpy(csv->types[j], "S");
         else
-            csv->types[j] = "N";
+            strcpy(csv->types[j],"N");
     }
 
     // Inicializa o vetor com 0
@@ -252,11 +253,69 @@ void analyze_csv (struct arq_csv *csv){
     for (unsigned long j = 0; j < csv->columns; j++){
         for (unsigned long i = 0; i < csv->lines; i++){
             char *word = csv->data[i][j];
-            unsigned long len = strlen(word);
+            unsigned short len = strlen(word);
             if (len > *(csv->sizes[j]))
                 *(csv->sizes[j]) = len;
         }
     } 
+}
+
+/*void formata(unsigned char **formatacao, const unsigned short *tamanhos, const unsigned long quantidade,
+                                                                                     char ***dados) {
+    for (unsigned long i = 0; i < quantidade; i++) {
+        for (unsigned short j = 0; j < tamanhos[i] - strlen(dados[i][j]); j++) {
+            formatacao[i][j] = ' ';
+        }
+        strcpy(formatacao[i] + (tamanhos[i] - strlen(dados[i][j])), dados[i][j]);
+    }
+}
+*/
+
+int comparation_numeric (const void *a, const void *b){
+    double *aa = (double *)a;
+    double *bb = (double *)b;
+    
+    if (*aa == *bb)         return 0;
+    else if (*aa < *bb)     return -1;
+    else                    return 1;
+
+}
+
+int comparation_string (const void *a, const void *b){
+    char *aa = *(char **)a;
+    char *bb = *(char **)b;
+
+    return strcmp(aa, bb);
+}
+      
+// Função de comparação para ordenação ascendente da struct
+int compare_asc(const void *a, const void *b) {
+    struct column_infos *aa = (struct column_infos *)a;
+    struct column_infos *bb = (struct column_infos *)b;
+    return strcmp(aa->infos, bb->infos);
+}
+
+// Função de comparação para ordenação descendente da struct
+int compare_desc(const void *a, const void *b) {
+    return -compare_asc(a, b);
+}
+
+// Função de comparação para ordenação ascendente de valores numéricos da struct
+int compare_numeric_asc(const void *a, const void *b) {
+    struct column_infos *aa = (struct column_infos *)a;
+    struct column_infos *bb = (struct column_infos *)b;
+    
+    double num_aa = atof(aa->infos);
+    double num_bb = atof(bb->infos);
+    
+    if (num_aa < num_bb) return -1;
+    else if (num_aa > num_bb) return 1;
+    else return 0;
+}
+
+// Função de comparação para ordenação descendente de valores numéricos da struct
+int compare_numeric_desc(const void *a, const void *b) {
+    return -compare_numeric_asc(a, b);
 }
 
 /* -----------------------------------------------------------------------------*/
@@ -277,7 +336,7 @@ void summary (struct arq_csv *csv){
 }
 
 void show (struct arq_csv *csv){
-    
+  
     if (csv->lines <= 10){
         for (unsigned short i = 0; i < csv->lines; i++){
             for (unsigned short j = 0; j < csv->columns; j++){
@@ -370,7 +429,10 @@ void filtering (struct arq_csv *csv){
     }
 
 
+    /*-------------------------- ANALISE DE FILTROS E CASOS--------------------------------- */
+
     unsigned long new_lines = 1;
+
     if (strcmp(filter, "==") == 0) {
         for (unsigned long i = 1; i < csv->lines; i++) {
             if (strcmp(csv->data[i][var_column], value) == 0) {
@@ -381,9 +443,6 @@ void filtering (struct arq_csv *csv){
             }
         }
     }
-
-
-    /*-------------------------- ANALISE DE FILTROS E CASOS--------------------------------- */
 
 
     else if (strcmp(filter, ">") == 0) {
@@ -631,7 +690,7 @@ void filtering (struct arq_csv *csv){
           
     // Preenche a matriz com dados filtrados   
     for (unsigned long j = 0; j < csv->columns; j++){
-        filtered_matrix[0][j] = csv->data[0][j];
+        strcpy(filtered_matrix[0][j], csv->data[0][j]);
     }
  
     unsigned long i = 1;
@@ -642,7 +701,7 @@ void filtering (struct arq_csv *csv){
             continue;
         }
         for (unsigned long c = 0; c < csv->columns; c++){
-            filtered_matrix[i][c] = csv->data[l][c];           
+            strcpy(filtered_matrix[i][c], csv->data[l][c]);           
         }
         l++;
         i++;
@@ -705,8 +764,8 @@ void data_description (struct arq_csv *csv){
 
     char var[50];
     
-    printf("entre com a variavel: ");
-    scanf("%s", &var);
+    printf("Entre com a variavel: ");
+    scanf("%s", var);
 
     // Acha a coluna da variavel a ser filtrada
     unsigned long var_column;
@@ -717,30 +776,30 @@ void data_description (struct arq_csv *csv){
         }
     }
     
-    if (*csv->types[var_column] == 'N'){
+    if (strcmp(csv->types[var_column], "N") == 0){
 
         // Contador para o total de dados        
-        unsigned int total = 0;
+        unsigned long total = 0;
         for (unsigned long i = 1; i < csv->lines; i++){
-            if (csv->data[0][var_column] == 'NaN') continue;
+            if (strcmp(csv->data[i][var_column], "NaN") == 0) continue;
             total++;
         }
 
         // alocando espaço em um vetor para colocar os valores
         double *values = (double *)malloc(total * sizeof(double));
-        if (valores == NULL) {
+        if (values == NULL) {
             fprintf(stderr, "Erro de alocação de memória.\n");
             exit(EXIT_FAILURE);
         }
     
         unsigned int index = 0;
-        for (unsigned long i = 0; i < csv->lines; i++){
+        for (unsigned long i = 1; i < csv->lines; i++){
             if (strcmp(csv->data[i][var_column], "NaN") != 0){
-                values[index++] = atof(csv->data(csv->data[i][var_column]));
+                values[index++] = atof(csv->data[i][var_column]);
             }
         }
 
-        qsort (values, total, sizeof(double), comparation);
+        qsort (values, total, sizeof(double), comparation_numeric);
 
         
         //--- MÉDIA ---
@@ -752,40 +811,407 @@ void data_description (struct arq_csv *csv){
 
 
         // --- MEDIANA ---
-        double mediana 
+        double mediana; 
         if ((total % 2) == 0)
-            mediana = (values[(n/2) - 1] + values[n/2]) / 2.0; 
+            mediana = (values[(total/2) - 1] + values[total/2]) / 2.0; 
         else
-            mediana = values[n/2];
+            mediana = values[total/2];
         
-        
+
         // --- MODA ---
+        double moda = values[0];
+        unsigned long times = 1;
+        double current = values[0];
+        unsigned long current_times = 0;
+        for (unsigned long i = 1; i < total; i++){
+            if (values[i] == moda){
+                times++;
+            }
+            else if (values[i] == current){
+                current_times++;
+            }
+            else {
+                current = values[i];
+                current_times = 1;
+            }
+            if (current_times > times){
+                moda = current;
+                times = current_times;
+            }
+        }
+
+
+        // --- Desvio Padrão ---
+        double sum_s = 0;
+        for (unsigned int i = 0; i < total; i++)
+            sum_s += (values[i] - media) * (values[i] - media);
+        double desvio_padrao = sqrt(sum_s / total);
+
+        
+        // --- MINIMO E MAXIMO ---
+        double max = values[total - 1];
+        double min = values[0];
+
+
+        // --- VALORES UNICOS ---
+        unsigned long unique = 1;
+        for (unsigned long i = 1; i < total; i++){
+            if (values[i] != values[i - 1])
+                unique++;
+        }
+        
+        double *unique_v = (double *) malloc(unique * (sizeof (double)));
+        if (unique_v == NULL) {
+            fprintf(stderr, "Erro de alocação de memória.\n");
+            exit(EXIT_FAILURE);
+        }
+        
+        unique_v[0] = values[0];
+        unsigned long unique_i = 1;
+        for (unsigned long i = 1; i < unique; i++){
+            if (values[i] != values[i - 1])
+                unique_v[unique_i++] = values[i];
+        }
+
+        
+        // --- PRINT DADOS ---
+        
+        printf("Contador: %lu\n", total);
+        printf("Media: %.1f\n", media);
+        printf("Desvio: %.1f\n", desvio_padrao);  
+        printf("Mediana: %.1f\n", mediana);
+        printf("Moda: %.1f %lu vezes\n", moda, times);
+        printf("Min.: %.1f\n", min);
+        printf("Max.: %.1f\n", max);
+
+        printf("%lu\n", unique);
+        printf("Valores unicos: [");
+        unsigned long i = 0;
+        while ( i < unique-1){
+        //for (unsigned long i = 0; i < unique-1; i++)
+            printf("%.1f ,", unique_v[i]);
+            i++;
+        }
+        printf("%.1f]\n", unique_v[i]); 
+        
+        free(values);
+        free(unique_v);
+      
+        printf("\nPressione ENTER para continuar\n");
+        getchar();
+    }
+    else {
+
+        // Contador para o total de dados        
+        unsigned long total = 0;
+        for (unsigned long i = 1; i < csv->lines; i++){
+            if (strcmp(csv->data[i][var_column], "NaN") == 0) continue;
+            total++;
+        }
+
+        // Aloca vetor de ponteiro para char, para guardar as variáveis nao numéricas
+        char **values = (char **)malloc(total * sizeof(char*));
+        if (values == NULL) {
+            fprintf(stderr, "Erro de alocação de memória.\n");
+            exit(EXIT_FAILURE);
+        }
+
+        for (unsigned int i = 0; i < total; i++) {
+            values[i] = (char *)malloc((*(csv->sizes[var_column]) +1) * sizeof(char));
+            if (values[i] == NULL) {
+                fprintf(stderr, "Erro de alocação de memória.\n");
+                exit(EXIT_FAILURE);
+            }
+        }
+       
+ 
+        // Preenche vetor com dados nao numericos
+        unsigned int index = 0;
+        for (unsigned long i = 1; i < csv->lines; i++){
+            if (strcmp(csv->data[i][var_column], "NaN") != 0){
+                strcpy(values[index++], csv->data[i][var_column]);
+            }
+        }
+
+        // Ordena crescente
+        qsort(values, total, sizeof(char *), comparation_string);
+
+
+        // --- VALORES UNICOS ---
+        unsigned long unique = 1;
+        for (unsigned long i = 1; i < total; i++){
+            if (strcmp(values[i], values[i - 1]) != 0)
+                unique++;
+        }
+
+
+        // Aloca vetor de ponteiro para char, guardar strings
+        char **unique_v = (char **)malloc(unique * (sizeof (char *)));
+        if (unique_v == NULL) {
+           fprintf(stderr, "Erro de alocação de memória.\n");
+            exit(EXIT_FAILURE);
+        }
+
+        for (unsigned int i = 0; i < unique; i++) {
+            unique_v[i] = (char *)malloc((*csv->sizes[var_column] + 1) * sizeof(char));
+            if (unique_v[i] == NULL) {
+                fprintf(stderr, "Erro de alocação de memória.\n");
+                exit(EXIT_FAILURE);
+            }
+        }
         
 
+        strcpy(unique_v[0],values[0]);
+        unsigned long unique_i = 1;
+        for (unsigned long i = 1; i < total; i++){
+            if (strcmp(values[i], values[i - 1]) != 0)
+                strcpy(unique_v[unique_i++], values[i]);
+        }
+        
+         // --- MODA ---
+        char *moda = strdup(values[0]);
+        unsigned long times = 1;
+        char *current = strdup(values[0]);
+        unsigned long current_times = 0;
+        for (unsigned long i = 1; i < total; i++){
+            if ((strcmp(values[i], moda) == 0)){
+                times++;
+            }
+            else if ((strcmp(values[i],current) == 0)){
+                current_times++;
+            }
+            else {
+                free(current);
+                //strcpy(current, values[i]);
+                current = strdup(values[i]);
+                current_times = 1;
+            }
+            if (current_times > times) {
+                free(moda);
+                //strcpy(moda, current);
+                moda = strdup(current);
+                times = current_times;
+            }
+        }
+        
+        printf("Contador: %lu\n", total);
+        printf("Moda: %s %lu vezes\n", moda, times);
+        printf("Valores unicos: [");
+        unsigned long i = 0;
+        while ( i < unique - 1 ){
+            printf("'%s', ", unique_v[i]);
+            i++;
+        }
+        printf("'%s']\n", unique_v[i]);
+        
+        // Libera unique_v       
+        for (unsigned long i = 0; i < unique; i++)
+            free(unique_v[i]);
+        free(unique_v);
+
+        // Libera values
+        for (unsigned int i = 0; i < total; i++) {
+            free(values[i]);
+        }
+        free(values); 
+        free(moda);
+        free(current);
+ 
+        printf("\nPressione ENTER para continuar\n");
+        getchar();
+    }
+}
 
 
+void ordering (struct arq_csv *csv){
 
+    char var[30], op[3];
 
+    printf("Entre com a variavel: ");
+    scanf("%s", var);
+ 
+    printf("Selecione uma opcao [A]scendente ou [D]escendente: ");
+    scanf("%s", op);
 
-
-
-
-
-
-
-
+    // Acha a coluna da variavel a ser filtrada
+    unsigned long var_column;
+    for (unsigned long j = 0; j < csv->columns; j++){
+        if (strcmp(csv->data[0][j], var) == 0){
+            var_column = j;
+            break;
+        }
+    }
     
 
+    //Cria matriz para os dados ordenados
+    char ***ordered_matrix = NULL;
+     
+    ordered_matrix = (char ***)malloc(csv->lines * sizeof(char **));
+    if (ordered_matrix == NULL) {
+        fprintf(stderr, "Erro de alocação de memória.\n");
+        exit(EXIT_FAILURE);
+    }
+    for (unsigned long i = 0; i < csv->lines; i++) {
+        ordered_matrix[i] = (char **)malloc(csv->columns * sizeof(char *));
+        if (ordered_matrix[i] == NULL) {
+            fprintf(stderr, "Erro de alocação de memória.\n");
+            exit(EXIT_FAILURE);
+        }
+        for (unsigned long j = 0; j < csv->columns; j++){
+            ordered_matrix[i][j] = (char *)malloc(30 * sizeof(char));
+        }
+    }
+ 
+    
+    // Vetor de structs para conseguir ordenar e conseguir saber qual era a linha que estava
+    struct column_infos *v = malloc((csv->lines - 1) * sizeof(struct column_infos));
+    if (v == NULL) {
+        fprintf(stderr, "Erro de alocação de memória.\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    for (unsigned long i = 1; i < csv->lines; i++){
+        v[i].infos = csv->data[i][var_column];
+        v[i].id = i;
+    }
+    
+    
+    if (strcmp(op, "A") == 0) {
+        
+        if (strcmp(csv->types[var_column], "S") == 0)
+            qsort(v, csv->lines, sizeof(struct column_infos), compare_asc);
+        else
+            qsort(v, csv->lines, sizeof(struct column_infos), compare_numeric_asc);
+    }
+    else{
+        if (strcmp(csv->types[var_column], "S") == 0)
+            qsort(v, csv->lines, sizeof(struct column_infos), compare_desc);
+        else
+            qsort(v, csv->lines, sizeof(struct column_infos), compare_numeric_desc);
+    }
+
+    // Copia o cabecalho para a matriz
+    for (unsigned long j = 0; j < csv->columns; j++){
+        strcpy(ordered_matrix[0][j], csv->data[0][j]);
+    }
+
+    // Coloca na matriz de acordo com o id do primeiro termo do vetor ordenado conforme a opção. this was genius
+    for (unsigned long i = 1; i < csv->lines; i++){
+        for (unsigned long j = 1; j < csv->columns; j++){
+            strcpy(ordered_matrix[i][j], csv->data[v[i].id][j]);
+        }
+    }
+
+    /* PRINT MATRIZ ORDENADA */
+    
+    if (csv->lines <= 10){
+        for (unsigned short i = 0; i < csv->lines; i++){
+            for (unsigned short j = 0; j < csv->columns; j++){
+                unsigned short align = *csv->sizes[j];
+                if (i == 0)
+                    printf(" %*s  ", align, ordered_matrix[i][j]);
+                else{
+                    if (j == 0){
+                        printf("%ld  %*s  ", v[i].id-1, align, ordered_matrix[i][j]);
+                    }
+                    else
+                        printf("%*s  ", align, ordered_matrix[i][j]);
+                } 
+            }
+            printf("\n");
+        }       
+    }
+
+    else{
+        for (unsigned short i = 0; i < 6; i++){
+            for (unsigned short j = 0; j < csv->columns; j++){
+                unsigned short align = *csv->sizes[j];
+                if (i == 0)
+                    printf("%*s",align, ordered_matrix[i][j]);
+                else
+                    if (j == 0)
+                        printf("%ld %*s ", v[i].id -1, align, ordered_matrix[i][j]);
+                    else
+                        printf("%*s ", align, ordered_matrix[i][j]); 
+            }
+            printf("\n");
+        }
+
+        for (unsigned short j = 0; j < csv->columns; j++){
+            unsigned short align = *csv->sizes[j];
+            printf("%*s", align, "...");
+        }
+        printf("\n");
+
+        for (unsigned long i = (csv->lines - 5); i < csv->lines; i++){
+            for (unsigned short j = 0; j < csv->columns; j++){
+                unsigned short align = *csv->sizes[j];
+                    if (j == 0)
+                        printf("%ld %*s", v[i].id -1, align, ordered_matrix[i][j]);
+                    else
+                        printf("%*s", align, ordered_matrix[i][j]); 
+            }
+            printf("\n");
+        }
+    }
+    
+    printf("\n[%lu rows x %lu columns]\n", csv->lines - 1, csv->columns);
 
 
+  
+    char save;
+    printf("Deseja gravar um arquivo com os dados filtrados? [S|N]: ");
+    scanf("%s", &save);
+
+    if (save == 'S' || save == 's'){
+        char *file_name = malloc(100 * sizeof(char));
+        printf("Entre com o nome do arquivo: ");
+        scanf("%s", file_name);
+    
+        save_newData(ordered_matrix, csv->lines, csv->columns, file_name);
+    }
 
 
+    char discard;
+    printf("Deseja descartar os dados originais? [S|N]: ");
+    scanf("%s", &discard);
+    
+    if (discard == 'S' || discard == 's'){
+        
+        // Libera memoria da matriz original
+        for (unsigned long i = 0; i < csv->lines; i++) {
+            for (unsigned long j = 0; j < csv->columns; j++) {
+                free(csv->data[i][j]);
+            }
+            free(csv->data[i]);
+        }
+        free(csv->data);
+
+        // Nova matriz 'original'
+        csv->data = ordered_matrix;
+    }
+
+    else{
+        
+        // Libera matriz filtrada
+        for (unsigned long i = 0; i < csv->lines; i++) {
+            for (unsigned long j = 0; j < csv->columns; j++) {
+                free(ordered_matrix[i][j]);
+            }
+            free(ordered_matrix[i]);
+        }
+        free(ordered_matrix);    
+    }    
+
+
+    printf("\nPressione ENTER para continuar\n");
+    getchar();
+ 
+}   
    
 
 
 
-                
-    
 
 
 
@@ -794,59 +1220,3 @@ void data_description (struct arq_csv *csv){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      

@@ -13,6 +13,7 @@ int main( int argc, char* argv[] ){
     struct arq_csv* csv = open_csv(file);
     read_csv (csv);
     analyze_csv (csv);
+ 
     int op;
     do{
 
@@ -30,6 +31,12 @@ int main( int argc, char* argv[] ){
                 break;
             case 3:
                 filtering(csv);
+                break;
+            case 4:
+                data_description(csv);
+                break;
+            case 5:
+                ordering(csv);
                 break;
             case 9:
                 break;

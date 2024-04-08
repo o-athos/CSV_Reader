@@ -1420,9 +1420,74 @@ void selecao (struct arq_csv *csv){
     
 }    
 
+    /* ---------- FUNÇÔES PARA A FUNÇÂO 'DADOS FALTANTES' --------- */
 
 
+void list_NaN (struct arq_csv *csv){
     
+    
+    
+void dados_faltantes (struct arq_csv *csv){
+        
+    int op;
+
+
+    do {
+        
+        printf("\n1) Listar registros com NaN\n");
+        printf("2) Substituir pela media\n");
+        printf("3) Substituir pelo proximo valor valido\n");
+        printf("4) Remover registros com NaN\n");
+        printf("5) Voltar ao menu principal\n");
+      
+
+      
+        scanf("%d", &op); 
+        getchar();
+
+        switch (op){
+            case: '1'
+                list_NaN(csv);
+                break;
+            case: '2'
+                
+                break;
+            case: '3'
+    
+                break;
+            case: '4'
+
+                break;
+
+            case: '5'
+                break;
+            
+            default:
+                printf("Opção invalida\n");
+
+    } while (op != 5);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

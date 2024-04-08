@@ -7,6 +7,7 @@ void menu(){
     printf("3) Filtros\n");
     printf("4) Descrição dos dados\n");
     printf("5) Ordenação\n");
+    printf("6) selecao\n");
     printf("9) Fim\n");
 }
 
@@ -1197,7 +1198,7 @@ void ordering (struct arq_csv *csv){
         scanf("%s", file_name);
     
         save_newData(ordered_matrix, csv->lines, csv->columns, file_name);
-            free(file_name);
+        free(file_name);
     }
 
 
@@ -1222,7 +1223,7 @@ void ordering (struct arq_csv *csv){
 
     else{
         
-        // Libera matriz filtrada
+        // Libera matriz ordenada
         for (unsigned long i = 0; i < csv->lines; i++) {
             for (unsigned long j = 0; j < csv->columns; j++) {
                 free(ordered_matrix[i][j]);
@@ -1243,6 +1244,186 @@ void ordering (struct arq_csv *csv){
  
 }   
    
+
+void selecao (struct arq_csv *csv){
+
+    char buffer[1024];
+    unsigned long n_var = 0;
+
+    char **v_var = (char **)malloc(csv->columns * sizeof(char *));
+    if (v_var == NULL) {
+        fprintf(stderr, "Erro de alocação de memória.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i < csv->columns; i++) {
+        v_var[i] = (char *)malloc(30 * sizeof(char)); 
+        if (v_var[i] == NULL) {
+            fprintf(stderr, "Erro de alocação de memória.\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+
+    printf("Entre com a variaveis que deseja selecionar (separadas por espaço): ");
+    fgets(buffer, sizeof(buffer), stdin);
+
+
+    char *token = strtok(buffer, " ");
+    while (token != NULL && n_var < csv->columns){
+       
+        if (token[strlen(token) - 1] == '\n')
+            token[strlen(token) - 1] = '\0';
+ 
+        strcpy(v_var[n_var], token);
+        n_var++;
+        token = strtok(NULL, " ");
+    }
+
+     //Cria matriz para os dados selecionados
+    char ***selected_matrix = NULL;
+     
+    selected_matrix = (char ***)malloc(csv->lines * sizeof(char **));
+    if (selected_matrix == NULL) {
+        fprintf(stderr, "Erro de alocação de memória.\n");
+        exit(EXIT_FAILURE);
+    }
+    for (unsigned long i = 0; i < csv->lines; i++) {
+        selected_matrix[i] = (char **)malloc(n_var * sizeof(char *));
+        if (selected_matrix[i] == NULL) {
+            fprintf(stderr, "Erro de alocação de memória.\n");
+            exit(EXIT_FAILURE);
+        }
+        for (unsigned long j = 0; j < n_var; j++){
+            selected_matrix[i][j] = (char *)malloc(30 * sizeof(char));
+        }
+    }
+    
+    // Vetor para saber quais colunas imprimir. 1 para imprimir; 0 nao
+    unsigned long *var_columns = (unsigned long *)malloc(csv->columns * sizeof(unsigned long));
+    for (unsigned long j = 0; j < csv->columns; j++)
+        var_columns[j] = 0;
+    
+    // Anota quais colunas estão ativas
+    for (unsigned long j = 0; j < csv->columns; j++){
+        for (unsigned long c = 0; c < n_var; c++){
+            if (strcmp(v_var[c], csv->data[0][j]) == 0)
+                var_columns[j] = 1;
+        }
+    }
+    
+    printf("oi\n");
+    unsigned long c = 0; 
+    for (unsigned long i = 0; i < csv->lines; i++){
+        for (unsigned long j = 0; j < csv->columns; j++){
+            if (var_columns[j] == 1){
+                strcpy(selected_matrix[i][c], csv->data[i][j]);
+                c++;
+            }
+        }
+        c = 0;
+    }
+
+    
+    printf("1\n");        
+    /* ------------ PRINT MATRIZ SELECIONADA ---------- */
+    
+    if (csv->lines <= 10){
+        for (unsigned short i = 0; i < csv->lines; i++){
+            for (unsigned short j = 0; j < n_var; j++){
+                unsigned short align = *csv->sizes[j];
+                if (i == 0)
+                    printf(" %*s", align, selected_matrix[i][j]);
+                else{
+                    if (j == 0){
+                        printf("%d  %*s  ", i-1, align, selected_matrix[i][j]);
+                    }
+                    else
+                        printf("%*s  ", align, selected_matrix[i][j]);
+                } 
+            }
+            printf("\n");
+        }       
+    }
+
+    else{
+        for (unsigned short i = 0; i < 6; i++){
+            for (unsigned short j = 0; j < n_var; j++){
+                unsigned short align = *csv->sizes[j];
+                if (i == 0)
+                    printf(" %*s",align, selected_matrix[i][j]);
+                else
+                    if (j == 0)
+                        printf("%d %*s ", i-1 , align, selected_matrix[i][j]);
+                    else
+                        printf("%*s ", align, selected_matrix[i][j]); 
+            }
+            printf("\n");
+        }
+
+        for (unsigned short j = 0; j < n_var; j++){
+            unsigned short align = *csv->sizes[j];
+            printf("%*s", align, "...");
+        }
+        printf("\n");
+
+        for (unsigned long i = (csv->lines - 5); i < csv->lines; i++){
+            for (unsigned short j = 0; j < n_var; j++){
+                unsigned short align = *csv->sizes[j];
+                    if (j == 0)
+                        printf("%ld %*s", i-1, align, selected_matrix[i][j]);
+                    else
+                        printf("%*s", align, selected_matrix[i][j]); 
+            }
+            printf("\n");
+        }
+    }
+    
+    printf("\n[%lu rows x %lu columns]\n", csv->lines - 1, n_var);
+
+
+    char save;
+    printf("Deseja gravar um arquivo com os dados filtrados? [S|N]: ");
+    scanf("%s", &save);
+
+    if (save == 'S' || save == 's'){
+        char *file_name = malloc(100 * sizeof(char));
+        printf("Entre com o nome do arquivo: ");
+        scanf("%s", file_name);
+    
+        save_newData(selected_matrix, csv->lines, n_var, file_name);
+        free(file_name);
+    }
+       
+
+    // Libera matriz ordenada
+    for (unsigned long i = 0; i < csv->lines; i++) {
+        for (unsigned long j = 0; j < n_var; j++) {
+            free(selected_matrix[i][j]);
+        }
+        free(selected_matrix[i]);
+    }
+    free(selected_matrix);
+
+    // Libera vetor das variaveis
+    for (unsigned long i = 0; i < csv->columns; i++){
+        free(v_var[i]);
+    }
+    free(v_var);
+    
+    // Libera vetor das colunas ativas/desativas
+    free(var_columns);
+
+
+    printf("\nPressione ENTER para continuar\n");
+    getchar();
+    
+}    
+
+
+
+    
+
 
 
 

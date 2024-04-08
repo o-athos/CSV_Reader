@@ -52,4 +52,6 @@ void show (struct arq_csv *csv);
 void filtering (struct arq_csv *csv);
 void data_description (struct arq_csv *csv);
 void ordering (struct arq_csv *csv);    
+void selecao (struct arq_csv *csv);
+
 #endif 

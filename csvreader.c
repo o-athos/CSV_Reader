@@ -38,6 +38,9 @@ int main( int argc, char* argv[] ){
             case 5:
                 ordering(csv);
                 break;
+            case 6:
+                selecao(csv);
+                break;
             case 9:
                 break;
             default:

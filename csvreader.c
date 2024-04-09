@@ -41,6 +41,9 @@ int main( int argc, char* argv[] ){
             case 6:
                 selecao(csv);
                 break;
+            case 7:
+                dados_faltantes(csv);
+                break;
             case 9:
                 break;
             default:

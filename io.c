@@ -8,6 +8,7 @@ void menu(){
     printf("4) Descrição dos dados\n");
     printf("5) Ordenação\n");
     printf("6) selecao\n");
+    printf("7) Dados Faltantes\n");
     printf("9) Fim\n");
 }
 
@@ -1424,7 +1425,133 @@ void selecao (struct arq_csv *csv){
 
 
 void list_NaN (struct arq_csv *csv){
+
+    // Vetor para identificar quias linha tem NaN
+    int *v_nan = malloc(csv->lines * (sizeof (int)));
+    for (unsigned long i = 0; i < csv->lines; i++)
+        v_nan[i] = 0;
+
+
+    // preencher vetor com as linhas q tem NaN e verificar quantas linhas são
+    unsigned long nan_cont = 0;
+    for (unsigned long i = 0; i < csv->lines; i++){
+        for (unsigned long j = 0; j < csv->columns; j++){
+            if (strcmp(csv->data[i][j], "NaN") == 0){
+                v_nan[i] = 1;
+                nan_cont++;
+                break;
+            }
+        }
+    }
     
+    //Cria matriz para os dados com NaN na linha
+    char ***nan_matrix = NULL;
+     
+    nan_matrix = (char ***)malloc((nan_cont+1) * sizeof(char **));
+    if (nan_matrix == NULL) {
+        fprintf(stderr, "Erro de alocação de memória.\n");
+        exit(EXIT_FAILURE);
+    }
+    for (unsigned long i = 0; i < nan_cont+1; i++) {
+        nan_matrix[i] = (char **)malloc(csv->columns * sizeof(char *));
+        if (nan_matrix[i] == NULL) {
+            fprintf(stderr, "Erro de alocação de memória.\n");
+            exit(EXIT_FAILURE);
+        }
+        for (unsigned long j = 0; j < csv->columns; j++){
+            nan_matrix[i][j] = (char *)malloc(30 * sizeof(char));
+        }
+    }
+   
+
+    /* -- LISTAR LINHAS COM NaN -- */
+
+    for (unsigned long j = 0; j < csv->columns; j++){
+        char align = *csv->sizes[j];
+        printf(" %*s", align, csv->data[0][j]);
+        strcpy(nan_matrix[0][j], csv->data[0][j]);
+    }
+    printf("\n");
+
+    unsigned long i = 0;
+    unsigned long l = 1;
+    while ( i < csv->lines && l < nan_cont+1){
+        if (v_nan[i] == 0){
+            i++;
+            continue;
+        }
+        unsigned long c = 0;
+        for (unsigned long j = 0; j < csv->columns; j++){
+            char align = *csv->sizes[j];
+            if (j == 0)
+                printf("%lu %*s ", i-1, align, csv->data[i][j]);
+            else
+                printf("%*s ", align, csv->data[i][j]);
+            
+            strcpy(nan_matrix[l][c], csv->data[i][j]);
+            c++;
+        }
+        l++;
+        i++;
+        printf("\n");
+    }
+    
+    printf("\n[%lu rows x %lu columns]\n", nan_cont , csv->columns);
+   
+   
+    char save;
+    printf("Deseja gravar um arquivo com os dados filtrados? [S|N]: ");
+    scanf("%s", &save);
+
+    if (save == 'S' || save == 's'){
+        char *file_name = malloc(100 * sizeof(char));
+        printf("Entre com o nome do arquivo: ");
+        scanf("%s", file_name);
+    
+        save_newData(nan_matrix, nan_cont+1, csv->columns, file_name);
+        free(file_name);
+    }
+
+
+    char discard;
+    printf("Deseja descartar os dados originais? [S|N]: ");
+    scanf("%s", &discard);
+    
+    if (discard == 'S' || discard == 's'){
+        
+        // Libera memoria da matriz original
+        for (unsigned long i = 0; i < csv->lines; i++) {
+            for (unsigned long j = 0; j < csv->columns; j++) {
+                free(csv->data[i][j]);
+            }
+            free(csv->data[i]);
+        }
+        free(csv->data);
+
+        // Nova matriz 'original'
+        csv->data = nan_matrix;
+        csv->lines = nan_cont + 1;
+    }
+
+    else{
+        
+        // Libera matriz selecionada com linhas NaN
+        for (unsigned long i = 0; i < nan_cont; i++) {
+            for (unsigned long j = 0; j < csv->columns; j++) {
+                free(nan_matrix[i][j]);
+            }
+            free(nan_matrix[i]);
+        }
+        free(nan_matrix);    
+    }    
+
+    free(v_nan);
+
+    printf("\nPressione ENTER para continuar\n");
+    getchar();
+    
+    
+}
     
     
 void dados_faltantes (struct arq_csv *csv){
@@ -1446,30 +1573,30 @@ void dados_faltantes (struct arq_csv *csv){
         getchar();
 
         switch (op){
-            case: '1'
+            case 1:
                 list_NaN(csv);
                 break;
-            case: '2'
+            case '2':
                 
                 break;
-            case: '3'
+            case '3':
     
                 break;
-            case: '4'
+            case '4':
 
                 break;
 
-            case: '5'
+            case '5':
                 break;
             
             default:
                 printf("Opção invalida\n");
 
+        }
+
     } while (op != 5);
 
-
-
-
+}
 
 
 

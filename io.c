@@ -781,7 +781,8 @@ void filtering (struct arq_csv *csv){
     printf("Pressione ENTER para continuar\n");
     getchar();
 }  
-           
+
+               
 void data_description (struct arq_csv *csv){
 
     char var[50];
@@ -830,7 +831,7 @@ void data_description (struct arq_csv *csv){
             soma += values[i];
         }
         double media = soma/total;
-
+ 
 
         // --- MEDIANA ---
         double mediana; 
@@ -1464,14 +1465,14 @@ void list_NaN (struct arq_csv *csv){
     }
    
 
-    /* -- LISTAR LINHAS COM NaN -- */
+    /* -- COLOCA NA MATRIZ COM NaN -- */
 
     for (unsigned long j = 0; j < csv->columns; j++){
-        char align = *csv->sizes[j];
-        printf(" %*s", align, csv->data[0][j]);
+//        char align = *csv->sizes[j];
+//        printf(" %*s", align, csv->data[0][j]);
         strcpy(nan_matrix[0][j], csv->data[0][j]);
     }
-    printf("\n");
+//    printf("\n");
 
     unsigned long i = 0;
     unsigned long l = 1;
@@ -1482,26 +1483,80 @@ void list_NaN (struct arq_csv *csv){
         }
         unsigned long c = 0;
         for (unsigned long j = 0; j < csv->columns; j++){
-            char align = *csv->sizes[j];
+/*            char align = *csv->sizes[j];
             if (j == 0)
                 printf("%lu %*s ", i-1, align, csv->data[i][j]);
-            else
+            else 
                 printf("%*s ", align, csv->data[i][j]);
-            
+*/            
             strcpy(nan_matrix[l][c], csv->data[i][j]);
             c++;
         }
         l++;
         i++;
-        printf("\n");
+//        printf("\n");
     }
-    
+  
+            /* ---- PRINT LINHAS COM NAN -----*/
+
+    if (nan_cont+1 <= 10){
+        for (unsigned short i = 0; i < nan_cont+1; i++){
+            for (unsigned short j = 0; j < csv->columns; j++){
+                unsigned short align = *csv->sizes[j];
+                if (i == 0)
+                    printf(" %*s  ", align, nan_matrix[i][j]);
+                else{
+                    if (j == 0){
+                        printf("%d  %*s  ", i-1, align, nan_matrix[i][j]);
+                    }
+                    else
+                        printf("%*s  ", align, nan_matrix[i][j]);
+                } 
+            }
+            printf("\n");
+        }       
+    }
+
+    else{
+        for (unsigned short i = 0; i < 6; i++){
+            for (unsigned short j = 0; j < csv->columns; j++){
+                unsigned short align = *csv->sizes[j];
+                if (i == 0)
+                    printf(" %*s",align, nan_matrix[i][j]);
+                else
+                    if (j == 0)
+                        printf("%d %*s ", i-1, align, nan_matrix[i][j]);
+                    else
+                        printf("%*s ", align, nan_matrix[i][j]); 
+            }
+            printf("\n");
+        }
+
+        for (unsigned short j = 0; j < csv->columns; j++){
+            unsigned short align = *csv->sizes[j];
+            printf("%*s", align, "...");
+        }
+        printf("\n");
+
+        for (unsigned long i = (nan_cont+1 - 5); i < nan_cont+1; i++){
+            for (unsigned short j = 0; j < csv->columns; j++){
+                unsigned short align = *csv->sizes[j];
+                    if (j == 0)
+                        printf("%ld %*s", i-1, align, nan_matrix[i][j]);
+                    else
+                        printf("%*s", align, nan_matrix[i][j]); 
+            }
+            printf("\n");
+        }
+    }
+ 
+  
     printf("\n[%lu rows x %lu columns]\n", nan_cont , csv->columns);
    
    
     char save;
     printf("Deseja gravar um arquivo com os dados filtrados? [S|N]: ");
-    scanf("%s", &save);
+        scanf("%s", &save);
 
     if (save == 'S' || save == 's'){
         char *file_name = malloc(100 * sizeof(char));
@@ -1552,7 +1607,80 @@ void list_NaN (struct arq_csv *csv){
     
     
 }
+
+double calc_media (struct arq_csv *csv, unsigned long column){
+
+        
+        // Contador para o total de dados        
+        unsigned long total = 0;
+        for (unsigned long i = 1; i < csv->lines; i++){
+            if (strcmp(csv->data[i][column], "NaN") == 0) continue;
+            total++;
+        }
+
+        // alocando espaço em um vetor para colocar os valores
+        double *values = (double *)malloc(total * sizeof(double));
+        if (values == NULL) {
+            fprintf(stderr, "Erro de alocação de memória.\n");
+            exit(EXIT_FAILURE);
+        }
     
+        unsigned int index = 0;
+        for (unsigned long i = 1; i < csv->lines; i++){
+            if (strcmp(csv->data[i][column], "NaN") != 0){
+                values[index++] = atof(csv->data[i][column]);
+            }
+        }
+
+        
+        //--- MÉDIA ---
+        double soma = 0;
+        for (int i = 0; i < total; i++){
+            soma += values[i];
+        }
+        
+        free(values);
+
+        return soma/total;
+}
+
+
+void change_by_media (struct arq_csv *csv){
+    
+    for (unsigned long i = 0; i < csv->lines; i++){
+        for (unsigned long j = 0; j < csv->columns; j++){
+            if (strcmp(csv->data[i][j], "NaN") == 0 && strcmp(csv->types[j], "N") == 0 ){
+                char media_str[30];
+                sprintf(media_str, "%.1f", calc_media(csv, j));
+                strcpy(csv->data[i][j], media_str);
+            }
+        }
+    }
+
+}
+
+void change_by_next (struct arq_csv *csv){
+
+
+    for (unsigned long i = 0; i < csv->lines; i++){
+        for (unsigned long j = 0; j < csv->columns; j++){
+            if (strcmp(csv->data[i][j], "NaN") == 0){
+                unsigned long l = i;
+                while ( l < csv->lines && strcmp(csv->data[l][j], "NaN") == 0){  
+                    l++;
+                }
+                if (l == csv->lines)
+                    continue;
+                strcpy(csv->data[i][j], csv->data[l][j]);
+            }
+        }
+    }
+}
+   
+    
+
+
+
     
 void dados_faltantes (struct arq_csv *csv){
         
@@ -1576,17 +1704,17 @@ void dados_faltantes (struct arq_csv *csv){
             case 1:
                 list_NaN(csv);
                 break;
-            case '2':
-                
+            case 2:
+                change_by_media(csv);
                 break;
-            case '3':
-    
+            case 3:
+                change_by_next(csv); 
                 break;
-            case '4':
+            case 4:
 
                 break;
 
-            case '5':
+            case 5:
                 break;
             
             default:

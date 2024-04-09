@@ -37,6 +37,8 @@ void save_newData (char ***matrix, unsigned long new_lines, unsigned long column
 
 char* separate (char* lines);
 
+double calc_media (struct arq_csv *csv, unsigned long columns);
+
 // Funcoes para uso do qsort da libC
 int comparation_numeric (const void *a, const void *b);
 int comparation_string (const void *a, const void *b);
@@ -54,4 +56,7 @@ void data_description (struct arq_csv *csv);
 void ordering (struct arq_csv *csv);    
 void selecao (struct arq_csv *csv);
 void dados_faltantes(struct arq_csv *csv);
+void change_by_media (struct arq_csv *csv);
+void chang_by_next (struct arq_csv *csv);
+
 #endif 

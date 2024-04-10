@@ -30,8 +30,9 @@ struct arq_csv* verify_csv (struct arq_csv* file);
 
 void create_matrix (struct arq_csv *csv);
 void fill_matrix (struct arq_csv* file);
+void print_matrix (char ***matriz, unsigned long lines, unsigned long columns, unsigned long *v,
+                    unsigned short **sizes);
 
-void formata(unsigned char **formatacao, const unsigned short *tamanhos, const unsigned long quantidade, char ***dados);
 
 void save_newData (char ***matrix, unsigned long new_lines, unsigned long columns, const char *file_name);
 

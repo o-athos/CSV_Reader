@@ -140,6 +140,116 @@ void fill_matrix (struct arq_csv *csv){
     }
 }
 
+void print_matrix (char ***matriz, unsigned long lines, unsigned long columns, unsigned long *v,
+unsigned short **sizes){
+
+    // Acha o maior indice no sentido de string
+    char id[30];
+    size_t max = 0;
+
+    for (unsigned long i = 0; i < lines-1; i++){
+        sprintf(id, "%lu", v[i]);
+        size_t lenght = strlen(id);
+        if (lenght > max)
+            max = lenght;
+    }
+   
+    unsigned short cont;
+    if (lines <= 10){
+        for (unsigned long i = 0; i < lines; i++){
+            if (i > 0){
+                printf("%lu", v[i-1]);
+                char id_i[30];
+                sprintf(id_i, "%lu", v[i-1]);
+                size_t tam_i = strlen(id_i);
+                for (int k = 0; k < max - tam_i + 1; k++)
+                    printf(" ");
+            }
+            else {
+                for (int k = 0; k < max + 1; k++)
+                    printf(" ");
+            }
+
+            for (unsigned long j = 0; j < columns; j++){
+                cont = *sizes[j] - strlen(matriz[i][j]) + 1;
+    
+                for (int k = 0; k < cont; k++)
+                    printf(" ");    
+
+                printf("%s", matriz[i][j]);
+            }
+            printf("\n");
+        }
+    }
+
+    else{
+
+        for (unsigned long i = 0; i < 6; i++){
+            if (i > 0){
+                printf("%lu", v[i-1]);
+                char id_i[30];
+                sprintf(id_i, "%lu", v[i-1]);
+                size_t tam_i = strlen(id_i);
+                for (int k = 0; k < max - tam_i + 1; k++)
+                    printf(" ");
+            }
+            else {
+                for (int k = 0; k < max + 1; k++)
+                    printf(" ");
+            }
+
+            for (unsigned long j = 0; j < columns; j++){
+                cont = *sizes[j] - strlen(matriz[i][j]) + 1;
+    
+                for (int k = 0; k < cont; k++)
+                    printf(" ");    
+
+                printf("%s", matriz[i][j]);
+            }
+            printf("\n");
+        }
+    
+        printf("...");
+	    for (int k = 0; k < max - 3; k++)
+		    printf(" ");
+	
+	    for (unsigned long j = 0; j < columns; j++){
+		    cont = *sizes[j] - 2;
+		    for (int k = 0; k < cont; k++) {
+			    printf(" ");
+		    }
+		    printf(" ...");
+	    }
+	    printf("\n");
+        
+        for (unsigned long i = lines - 5; i < lines; i++){
+            if (i > 0){
+                printf("%lu", v[i-1]);
+                char id_i[30];
+                sprintf(id_i, "%lu", v[i-1]);
+                size_t tam_i = strlen(id_i);
+                for (int k = 0; k < max - tam_i + 1; k++)
+                    printf(" ");
+            }
+            else {
+                for (int k = 0; k < max + 1; k++)
+                    printf(" ");
+            }
+
+            for (unsigned long j = 0; j < columns; j++){
+                cont = *sizes[j] - strlen(matriz[i][j]) + 1;
+    
+                for (int k = 0; k < cont; k++)
+                    printf(" ");    
+
+                printf("%s", matriz[i][j]);
+            }
+            printf("\n");   
+        }       
+    }
+}
+
+
 
 void save_newData (char ***matrix, unsigned long new_lines, unsigned long columns, const char *file_name){
     
@@ -261,17 +371,6 @@ void analyze_csv (struct arq_csv *csv){
         }
     } 
 }
-
-/*void formata(unsigned char **formatacao, const unsigned short *tamanhos, const unsigned long quantidade,
-                                                                                     char ***dados) {
-    for (unsigned long i = 0; i < quantidade; i++) {
-        for (unsigned short j = 0; j < tamanhos[i] - strlen(dados[i][j]); j++) {
-            formatacao[i][j] = ' ';
-        }
-        strcpy(formatacao[i] + (tamanhos[i] - strlen(dados[i][j])), dados[i][j]);
-    }
-}
-*/
 
 int comparation_numeric (const void *a, const void *b){
     double *aa = (double *)a;
@@ -1135,7 +1234,7 @@ void ordering (struct arq_csv *csv){
 
     /* ------------ PRINT MATRIZ ORDENADA ---------- */
     
-    if (csv->lines <= 10){
+/*    if (csv->lines <= 10){
         for (unsigned short i = 0; i < csv->lines; i++){
             for (unsigned short j = 0; j < csv->columns; j++){
                 unsigned short align = *csv->sizes[j];
@@ -1185,7 +1284,14 @@ void ordering (struct arq_csv *csv){
             printf("\n");
         }
     }
-    
+*/   
+    unsigned long *v_ids = malloc((csv->lines-1) * sizeof(unsigned long));
+    for (unsigned long i = 0; i < csv->lines-1; i++)
+        v_ids[i] = v[i].id;
+
+
+    print_matrix( ordered_matrix, csv->lines, csv->columns, v_ids, csv->sizes);
+ 
     printf("\n[%lu rows x %lu columns]\n", csv->lines - 1, csv->columns);
 
 
@@ -1240,6 +1346,7 @@ void ordering (struct arq_csv *csv){
         free(v[i].infos);
     }
     free(v);
+    free(v_ids);
 
     printf("\nPressione ENTER para continuar\n");
     getchar();
@@ -1313,8 +1420,8 @@ void selecao (struct arq_csv *csv){
                 var_columns[j] = 1;
         }
     }
-    
-    printf("oi\n");
+   
+    // Preenche a matriz com as colunas selecionadas 
     unsigned long c = 0; 
     for (unsigned long i = 0; i < csv->lines; i++){
         for (unsigned long j = 0; j < csv->columns; j++){
@@ -1327,10 +1434,9 @@ void selecao (struct arq_csv *csv){
     }
 
     
-    printf("1\n");        
     /* ------------ PRINT MATRIZ SELECIONADA ---------- */
     
-    if (csv->lines <= 10){
+/*    if (csv->lines <= 10){
         for (unsigned short i = 0; i < csv->lines; i++){
             for (unsigned short j = 0; j < n_var; j++){
                 unsigned short align = *csv->sizes[j];
@@ -1380,7 +1486,14 @@ void selecao (struct arq_csv *csv){
             printf("\n");
         }
     }
+*/
     
+    unsigned long *v_ids = malloc((csv->lines-1) * sizeof(unsigned long));
+    for (unsigned long i = 0; i < csv->lines-1; i++)
+        v_ids[i] = i;
+   
+    
+    print_matrix (selected_matrix, csv->lines, n_var, v_ids, csv->sizes);    
     printf("\n[%lu rows x %lu columns]\n", csv->lines - 1, n_var);
 
 
@@ -1510,7 +1623,7 @@ void list_NaN (struct arq_csv *csv){
   
             /* ---- PRINT LINHAS COM NAN -----*/
 
-    if (nan_cont+1 <= 10){
+/*    if (nan_cont+1 <= 10){
         for (unsigned short i = 0; i < nan_cont+1; i++){
             for (unsigned short j = 0; j < csv->columns; j++){
                 unsigned short align = *csv->sizes[j];
@@ -1560,8 +1673,10 @@ void list_NaN (struct arq_csv *csv){
             printf("\n");
         }
     }
- 
+*/ 
   
+    print_matrix (nan_matrix, nan_cont+1, csv->columns, v_id, csv->sizes);
+
     printf("\n[%lu rows x %lu columns]\n", nan_cont , csv->columns);
    
    
@@ -1602,7 +1717,7 @@ void list_NaN (struct arq_csv *csv){
     else{
         
         // Libera matriz selecionada com linhas NaN
-        for (unsigned long i = 0; i < nan_cont; i++) {
+        for (unsigned long i = 0; i < nan_cont+1; i++) {
             for (unsigned long j = 0; j < csv->columns; j++) {
                 free(nan_matrix[i][j]);
             }
@@ -1611,6 +1726,7 @@ void list_NaN (struct arq_csv *csv){
         free(nan_matrix);    
     }    
 
+    free(v_id);
     free(v_nan);
 
     printf("\nPressione ENTER para continuar\n");

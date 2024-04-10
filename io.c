@@ -1433,6 +1433,8 @@ void list_NaN (struct arq_csv *csv){
         v_nan[i] = 0;
 
 
+
+
     // preencher vetor com as linhas q tem NaN e verificar quantas linhas são
     unsigned long nan_cont = 0;
     for (unsigned long i = 0; i < csv->lines; i++){
@@ -1463,19 +1465,33 @@ void list_NaN (struct arq_csv *csv){
             nan_matrix[i][j] = (char *)malloc(30 * sizeof(char));
         }
     }
-   
+    
+    // Vetor para armazenar os indices das linhas com nan
+    unsigned long *v_id = malloc((nan_cont) * (sizeof(unsigned long)));
+    
+    unsigned long i = 0;
+    unsigned long l = 0;
+    while (i < csv->lines && l < nan_cont ){ 
+        if (v_nan[i] == 0){
+            i++;
+            continue;
+        }
+        v_id[l] = i;
+        i++;
+        l++;
+    }
+            
+
+
 
     /* -- COLOCA NA MATRIZ COM NaN -- */
 
     for (unsigned long j = 0; j < csv->columns; j++){
-//        char align = *csv->sizes[j];
-//        printf(" %*s", align, csv->data[0][j]);
         strcpy(nan_matrix[0][j], csv->data[0][j]);
     }
-//    printf("\n");
 
-    unsigned long i = 0;
-    unsigned long l = 1;
+    i = 0;
+    l = 1;
     while ( i < csv->lines && l < nan_cont+1){
         if (v_nan[i] == 0){
             i++;
@@ -1483,19 +1499,14 @@ void list_NaN (struct arq_csv *csv){
         }
         unsigned long c = 0;
         for (unsigned long j = 0; j < csv->columns; j++){
-/*            char align = *csv->sizes[j];
-            if (j == 0)
-                printf("%lu %*s ", i-1, align, csv->data[i][j]);
-            else 
-                printf("%*s ", align, csv->data[i][j]);
-*/            
             strcpy(nan_matrix[l][c], csv->data[i][j]);
             c++;
         }
         l++;
         i++;
-//        printf("\n");
     }
+
+
   
             /* ---- PRINT LINHAS COM NAN -----*/
 
@@ -1507,7 +1518,7 @@ void list_NaN (struct arq_csv *csv){
                     printf(" %*s  ", align, nan_matrix[i][j]);
                 else{
                     if (j == 0){
-                        printf("%d  %*s  ", i-1, align, nan_matrix[i][j]);
+                        printf("%lu  %*s  ", v_id[i-1], align, nan_matrix[i][j]);
                     }
                     else
                         printf("%*s  ", align, nan_matrix[i][j]);
@@ -1525,7 +1536,7 @@ void list_NaN (struct arq_csv *csv){
                     printf(" %*s",align, nan_matrix[i][j]);
                 else
                     if (j == 0)
-                        printf("%d %*s ", i-1, align, nan_matrix[i][j]);
+                        printf("%lu %*s ", v_id[i-1], align, nan_matrix[i][j]);
                     else
                         printf("%*s ", align, nan_matrix[i][j]); 
             }
@@ -1542,7 +1553,7 @@ void list_NaN (struct arq_csv *csv){
             for (unsigned short j = 0; j < csv->columns; j++){
                 unsigned short align = *csv->sizes[j];
                     if (j == 0)
-                        printf("%ld %*s", i-1, align, nan_matrix[i][j]);
+                        printf("%lu %*s", v_id[i-1], align, nan_matrix[i][j]);
                     else
                         printf("%*s", align, nan_matrix[i][j]); 
             }
@@ -1676,12 +1687,95 @@ void change_by_next (struct arq_csv *csv){
         }
     }
 }
-   
+  
+void delete_nans (struct arq_csv *csv){
+    
+    // Vetor para identificar quais linhas NAO tem NaN
+    int *v_not_nan = malloc(csv->lines * (sizeof (int)));
+    for (unsigned long i = 0; i < csv->lines; i++)
+        v_not_nan[i] = 0;
+
+
+    // preencher vetor com as linhas q NAO tem NaN e verificar quantas linhas são
+    unsigned long not_nan_cont = 0;
+    for (unsigned long i = 0; i < csv->lines; i++){
+        int nan_found = 0;
+        for (unsigned long j = 0; j < csv->columns; j++){
+            if (strcmp(csv->data[i][j], "NaN") == 0){
+                nan_found = 1;
+                break;
+            }
+        }
+        if (!nan_found){
+            v_not_nan[i] = 1;
+            not_nan_cont++;
+        }
+    }
+    
+    
+    //Cria matriz para os dados com NaN na linha
+    char ***not_nan_matrix = NULL;
+     
+    not_nan_matrix = (char ***)malloc((not_nan_cont) * sizeof(char **));
+    if (not_nan_matrix == NULL) {
+        fprintf(stderr, "Erro de alocação de memória.\n");
+        exit(EXIT_FAILURE);
+    }
+    for (unsigned long i = 0; i < not_nan_cont; i++) {
+        not_nan_matrix[i] = (char **)malloc(csv->columns * sizeof(char *));
+        if (not_nan_matrix[i] == NULL) {
+            fprintf(stderr, "Erro de alocação de memória.\n");
+            exit(EXIT_FAILURE);
+        }
+        for (unsigned long j = 0; j < csv->columns; j++){
+            not_nan_matrix[i][j] = (char *)malloc(30 * sizeof(char));
+        }
+    }
+    
+           
+
+    /* -- COLOCA NA MATRIZ COM NaN -- */
+
+    for (unsigned long j = 0; j < csv->columns; j++){
+        strcpy(not_nan_matrix[0][j], csv->data[0][j]);
+    }
+
+    unsigned long i = 0;
+    unsigned long l = 0;
+    while ( i < csv->lines && l < not_nan_cont){
+        if (v_not_nan[i] == 0){
+            i++;
+            continue;
+        }
+        unsigned long c = 0;
+        for (unsigned long j = 0; j < csv->columns; j++){
+            strcpy(not_nan_matrix[l][c], csv->data[i][j]);
+            c++;
+        }
+        l++;
+        i++;
+    }
     
 
+    // Libera memoria da matriz original
+    for (unsigned long i = 0; i < csv->lines; i++) {
+        for (unsigned long j = 0; j < csv->columns; j++) {
+            free(csv->data[i][j]);
+        }
+        free(csv->data[i]);
+    }
+    free(csv->data);
 
+    free(v_not_nan);
+
+    // Nova matriz 'original'
+    csv->data = not_nan_matrix;
+    csv->lines = not_nan_cont;
 
     
+}
+
+       
 void dados_faltantes (struct arq_csv *csv){
         
     int op;
@@ -1711,9 +1805,8 @@ void dados_faltantes (struct arq_csv *csv){
                 change_by_next(csv); 
                 break;
             case 4:
-
+                delete_nans(csv);
                 break;
-
             case 5:
                 break;
             

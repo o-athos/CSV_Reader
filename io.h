@@ -58,5 +58,5 @@ void selecao (struct arq_csv *csv);
 void dados_faltantes(struct arq_csv *csv);
 void change_by_media (struct arq_csv *csv);
 void chang_by_next (struct arq_csv *csv);
-
+void delete_nans (struct arq_csv *csv);
 #endif 

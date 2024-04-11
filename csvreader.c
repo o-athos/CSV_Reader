@@ -44,6 +44,9 @@ int main( int argc, char* argv[] ){
             case 7:
                 dados_faltantes(csv);
                 break;
+            case 8:
+                save(csv);
+                break;
             case 9:
                 break;
             default:

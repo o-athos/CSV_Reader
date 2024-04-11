@@ -9,6 +9,7 @@ void menu(){
     printf("5) Ordenação\n");
     printf("6) selecao\n");
     printf("7) Dados Faltantes\n");
+    printf("8) Salvar Dados\n");
     printf("9) Fim\n");
 }
 
@@ -80,7 +81,7 @@ char* separate (char* lines){
     if (!pos_comma){
         char *pos_newline = strchr(lines, '\n');
 
-        if (pos_newline){
+        if (pos_newline  && pos_newline == lines + strlen(lines)-1){
             *pos_newline = '\0';
             return lines;
         }
@@ -135,7 +136,10 @@ void fill_matrix (struct arq_csv *csv){
             token = separate(token + (strlen(token) +1));
             count += (strlen(token) + 1);
         }
-        strcpy(csv->data[l][c], token );
+        strcpy(csv->data[l][c], token);
+        
+        if (count == base && strcmp(token, "") == 0) 
+            strcpy(csv->data[l][c], "NaN");
         l++;
     }
 }
@@ -457,7 +461,7 @@ void summary (struct arq_csv *csv){
 
 void show (struct arq_csv *csv){
   
-    if (csv->lines <= 10){
+/*    if (csv->lines <= 10){
         for (unsigned short i = 0; i < csv->lines; i++){
             for (unsigned short j = 0; j < csv->columns; j++){
                 unsigned short align = *csv->sizes[j];
@@ -507,8 +511,18 @@ void show (struct arq_csv *csv){
             printf("\n");
         }
     }
+*/
+    // Vetor com ids, nesse caso, lineares   
+    unsigned long *v_ids = malloc((csv->lines-1) * sizeof(unsigned long));
+    for (unsigned long i = 0; i < csv->lines-1; i++)
+        v_ids[i] = i;
  
+    
+    print_matrix (csv->data, csv->lines, csv->columns, v_ids, csv->sizes); 
     printf("\n[%lu rows x %lu columns]\n", csv->lines - 1, csv->columns);
+
+    free(v_ids);
+
     printf("\nPressione ENTER para continuar\n");
     getchar();
 }
@@ -700,7 +714,7 @@ void filtering (struct arq_csv *csv){
 
     /* -------------------------- PRINT DE DADOS --------------------------------*/
 
-    // Print cabeçalho
+/*    // Print cabeçalho
     for (unsigned long j = 0; j < csv->columns; j++){
         unsigned short align = *csv->sizes[j];
         printf("%*s", align, csv->data[0][j]);
@@ -781,14 +795,7 @@ void filtering (struct arq_csv *csv){
         }            
            
     }
-
-    printf("[%lu rows x %lu columns]\n", new_lines-1, csv->columns); 
-
-
-
-    /*---------------------------- MANIPULAÇÂO DE DADOS -----------------------------------------*/
-
-
+*/
     // Cria nova matriz para o numero de linhas filtradas
     char ***filtered_matrix = NULL;
      
@@ -807,6 +814,10 @@ void filtering (struct arq_csv *csv){
             filtered_matrix[i][j] = (char *)malloc(30 * sizeof(char));
         }
     }
+
+    // Vetor armazenar os ids originais pré ordenação
+    unsigned long *v_ids = malloc((new_lines-1) * sizeof(unsigned long));
+
           
     // Preenche a matriz com dados filtrados   
     for (unsigned long j = 0; j < csv->columns; j++){
@@ -823,9 +834,21 @@ void filtering (struct arq_csv *csv){
         for (unsigned long c = 0; c < csv->columns; c++){
             strcpy(filtered_matrix[i][c], csv->data[l][c]);           
         }
+        v_ids[i-1] = l-1;
         l++;
         i++;
     }
+ 
+    print_matrix (filtered_matrix, new_lines, csv->columns, v_ids, csv->sizes);
+
+    printf("[%lu rows x %lu columns]\n", new_lines-1, csv->columns); 
+
+
+
+    /*---------------------------- MANIPULAÇÂO DE DADOS -----------------------------------------*/
+
+
+
 
  
     char op;
@@ -875,6 +898,7 @@ void filtering (struct arq_csv *csv){
     }    
 
     free(filtred_lines);
+    free(v_ids);
 
     getchar();
     printf("Pressione ENTER para continuar\n");
@@ -1359,6 +1383,7 @@ void selecao (struct arq_csv *csv){
     char buffer[1024];
     unsigned long n_var = 0;
 
+    // Vetor para armazenar as variaveis escolhidas
     char **v_var = (char **)malloc(csv->columns * sizeof(char *));
     if (v_var == NULL) {
         fprintf(stderr, "Erro de alocação de memória.\n");
@@ -1413,13 +1438,38 @@ void selecao (struct arq_csv *csv){
     for (unsigned long j = 0; j < csv->columns; j++)
         var_columns[j] = 0;
     
+    // Vetor para armazenar os maiores tamanhos apenas das variaveis selecionadas
+    unsigned short **sizes_selected = (unsigned short **)malloc(n_var * sizeof(unsigned short *));
+    if (sizes_selected == NULL) {
+        fprintf(stderr, "Erro de alocação de memória.\n");
+        exit(EXIT_FAILURE);
+    }
+    for (int j = 0; j < n_var; j++){
+        sizes_selected[j] = (unsigned short *)malloc(n_var * sizeof(unsigned short));
+        if (sizes_selected[j] == NULL){
+            printf("Erro alocar memoria");
+            return;
+        }
+    }
+    
+    
     // Anota quais colunas estão ativas
     for (unsigned long j = 0; j < csv->columns; j++){
         for (unsigned long c = 0; c < n_var; c++){
-            if (strcmp(v_var[c], csv->data[0][j]) == 0)
+            if (strcmp(v_var[c], csv->data[0][j]) == 0){
                 var_columns[j] = 1;
+            }
         }
     }
+    
+    unsigned long l = 0;
+    for (unsigned long j = 0; j < csv->columns; j++){
+        if (var_columns[j] == 1){
+            *sizes_selected[l] = *csv->sizes[j];
+            l++;
+        }
+    }    
+
    
     // Preenche a matriz com as colunas selecionadas 
     unsigned long c = 0; 
@@ -1487,13 +1537,13 @@ void selecao (struct arq_csv *csv){
         }
     }
 */
-    
+    // Vetor com ids, nesse caso, lineares   
     unsigned long *v_ids = malloc((csv->lines-1) * sizeof(unsigned long));
     for (unsigned long i = 0; i < csv->lines-1; i++)
         v_ids[i] = i;
-   
-    
-    print_matrix (selected_matrix, csv->lines, n_var, v_ids, csv->sizes);    
+  
+
+    print_matrix (selected_matrix, csv->lines, n_var, v_ids, sizes_selected);    
     printf("\n[%lu rows x %lu columns]\n", csv->lines - 1, n_var);
 
 
@@ -1528,6 +1578,14 @@ void selecao (struct arq_csv *csv){
     
     // Libera vetor das colunas ativas/desativas
     free(var_columns);
+
+    free(v_ids);    
+    
+    for (unsigned long j = 0; j < n_var; j++){ 
+           free(sizes_selected[j]);
+    }
+    free(sizes_selected);
+    
 
 
     printf("\nPressione ENTER para continuar\n");
@@ -1739,12 +1797,16 @@ double calc_media (struct arq_csv *csv, unsigned long column){
 
         
         // Contador para o total de dados        
+        double soma = 0;
         unsigned long total = 0;
         for (unsigned long i = 1; i < csv->lines; i++){
-            if (strcmp(csv->data[i][column], "NaN") == 0) continue;
-            total++;
+            if (strcmp(csv->data[i][column], "NaN") != 0){
+                total++;
+                soma += atof(csv->data[i][column]);
+            }
         }
 
+        /*
         // alocando espaço em um vetor para colocar os valores
         double *values = (double *)malloc(total * sizeof(double));
         if (values == NULL) {
@@ -1758,27 +1820,35 @@ double calc_media (struct arq_csv *csv, unsigned long column){
                 values[index++] = atof(csv->data[i][column]);
             }
         }
-
+        */
         
-        //--- MÉDIA ---
+/*        //--- MÉDIA ---
         double soma = 0;
         for (int i = 0; i < total; i++){
             soma += values[i];
         }
         
-        free(values);
+      free(values);*/
 
         return soma/total;
 }
 
 
 void change_by_media (struct arq_csv *csv){
-    
+   
+    double medias[csv->columns];
+
+    for (unsigned long j = 0; j < csv->columns; j++){
+        if (strcmp(csv->types[j], "N") == 0)
+            medias[j] = calc_media(csv, j);
+    }
+
+     
     for (unsigned long i = 0; i < csv->lines; i++){
         for (unsigned long j = 0; j < csv->columns; j++){
             if (strcmp(csv->data[i][j], "NaN") == 0 && strcmp(csv->types[j], "N") == 0 ){
                 char media_str[30];
-                sprintf(media_str, "%.1f", calc_media(csv, j));
+                sprintf(media_str, "%.1f", medias[j]);
                 strcpy(csv->data[i][j], media_str);
             }
         }
@@ -1935,8 +2005,16 @@ void dados_faltantes (struct arq_csv *csv){
 
 }
 
+void save (struct arq_csv *csv){
+    
+    char *file_name = malloc(100 * sizeof(char));
+    printf("Entre com o nome do arquivo: ");
+    scanf("%s", file_name);
 
+    save_newData(csv->data, csv->lines, csv->columns, file_name);
+    free(file_name);
 
+}
 
 
 

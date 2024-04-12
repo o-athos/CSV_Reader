@@ -15,10 +15,12 @@ struct arq_csv{
     char ***data;
 };
 
+// struct usada na ordenação da função de ordenação
 struct column_infos {
     char *infos;
     unsigned long id;
 };
+
 
 /* funções iniciais */
 struct arq_csv* open_csv (char* path);
@@ -26,16 +28,14 @@ void close_csv (struct  arq_csv *file);
 void read_csv (struct arq_csv *csv);
 void analyze_csv (struct arq_csv *csv);
 
-struct arq_csv* verify_csv (struct arq_csv* file);
-
+// Funções de matriz
 void create_matrix (struct arq_csv *csv);
 void fill_matrix (struct arq_csv* file);
 void print_matrix (char ***matriz, unsigned long lines, unsigned long columns, unsigned long *v,
                     unsigned short **sizes);
-
-
 void save_newData (char ***matrix, unsigned long new_lines, unsigned long columns, const char *file_name);
 
+// strtok buffado
 char* separate (char* lines);
 
 double calc_media (struct arq_csv *csv, unsigned long columns);

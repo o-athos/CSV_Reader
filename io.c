@@ -376,6 +376,10 @@ void analyze_csv (struct arq_csv *csv){
     } 
 }
 
+
+
+        /* --- Funções para uso do qsort --- */
+
 int comparation_numeric (const void *a, const void *b){
     double *aa = (double *)a;
     double *bb = (double *)b;
@@ -442,8 +446,17 @@ int compare_numeric_desc(const void *a, const void *b) {
     return -compare_numeric_asc(a, b);
 }
 
+//void filtro (
+
+
+
+
 /* -----------------------------------------------------------------------------*/
                             /* FUNÇÕES PRINCIPAIS */
+/* -----------------------------------------------------------------------------*/
+
+
+
 
 
 void summary (struct arq_csv *csv){
@@ -461,57 +474,6 @@ void summary (struct arq_csv *csv){
 
 void show (struct arq_csv *csv){
   
-/*    if (csv->lines <= 10){
-        for (unsigned short i = 0; i < csv->lines; i++){
-            for (unsigned short j = 0; j < csv->columns; j++){
-                unsigned short align = *csv->sizes[j];
-                if (i == 0)
-                    printf(" %*s  ", align, csv->data[i][j]);
-                else{
-                    if (j == 0){
-                        printf("%d  %*s  ", i-1, align, csv->data[i][j]);
-                    }
-                    else
-                        printf("%*s  ", align, csv->data[i][j]);
-                } 
-            }
-            printf("\n");
-        }       
-    }
-
-    else{
-        for (unsigned short i = 0; i < 6; i++){
-            for (unsigned short j = 0; j < csv->columns; j++){
-                unsigned short align = *csv->sizes[j];
-                if (i == 0)
-                    printf(" %*s",align, csv->data[i][j]);
-                else
-                    if (j == 0)
-                        printf("%d %*s ", i-1, align, csv->data[i][j]);
-                    else
-                        printf("%*s ", align, csv->data[i][j]); 
-            }
-            printf("\n");
-        }
-
-        for (unsigned short j = 0; j < csv->columns; j++){
-            unsigned short align = *csv->sizes[j];
-            printf("%*s", align, "...");
-        }
-        printf("\n");
-
-        for (unsigned long i = (csv->lines - 5); i < csv->lines; i++){
-            for (unsigned short j = 0; j < csv->columns; j++){
-                unsigned short align = *csv->sizes[j];
-                    if (j == 0)
-                        printf("%ld %*s", i-1, align, csv->data[i][j]);
-                    else
-                        printf("%*s", align, csv->data[i][j]); 
-            }
-            printf("\n");
-        }
-    }
-*/
     // Vetor com ids, nesse caso, lineares   
     unsigned long *v_ids = malloc((csv->lines-1) * sizeof(unsigned long));
     for (unsigned long i = 0; i < csv->lines-1; i++)
@@ -714,88 +676,6 @@ void filtering (struct arq_csv *csv){
 
     /* -------------------------- PRINT DE DADOS --------------------------------*/
 
-/*    // Print cabeçalho
-    for (unsigned long j = 0; j < csv->columns; j++){
-        unsigned short align = *csv->sizes[j];
-        printf("%*s", align, csv->data[0][j]);
-    }
-    printf("\n");
-
-     
-    if (new_lines <= 10){ 
-        // Imprime dados filtrados
-        for (unsigned long i = 1; i < csv->lines; i++){
-            if (filtred_lines[i] == 0) 
-                continue;
-            for (unsigned long j = 0; j < csv->columns; j++){
-                unsigned short align = *csv->sizes[j];
-                if (j == 0)
-                    printf("%ld  %*s  ", i-1, align, csv->data[i][j]);
-                else
-                    printf("%*s  ", align, csv->data[i][j]); 
-            }
-            printf("\n");            
-        }
-    }
-    else{
-        
-        unsigned long i = 0;
-        unsigned long l = 0; 
-        while (i < csv->lines && l < 5){
-            if (filtred_lines[i] == 0){ 
-                i++;
-                continue;
-            }
-            l++;
-            for (unsigned long j = 0; j < csv->columns; j++){
-                unsigned short align = *csv->sizes[j];
-                if (j == 0)
-                    printf("%ld  %*s  ", i-1, align, csv->data[i][j]);
-                else
-                    printf("%*s  ", align, csv->data[i][j]); 
-            }
-            printf("\n");
-            i++;            
-        }       
-        
-        // Divisao de linhas 
-        for (unsigned short j = 0; j < csv->columns; j++){
-            unsigned short align = *csv->sizes[j];
-            printf("%*s", align, "...");
-        }
-        printf("\n");
-
-       
-        // Achar o quinto ultimo indice filtrado
-        unsigned long aux = csv->lines-1;
-        unsigned long count = 0;
-        while (aux > 6 && count < 5){
-            if (filtred_lines[aux] == 1)
-                count++;
-            aux--;
-        }
-
-        i = aux;
-        l = 0;
-        while (i < csv->lines && l < 5){
-            if (filtred_lines[i] == 0){
-                i++;
-                continue;
-            }
-            for (unsigned long j = 0; j < csv->columns; j++){
-                unsigned short align = *csv->sizes[j];
-                if (j == 0)
-                    printf("%ld  %*s  ", i-1, align, csv->data[i][j]);
-                else
-                    printf("%*s  ", align, csv->data[i][j]); 
-            }
-            printf("\n");
-            i++;
-            l++;
-        }            
-           
-    }
-*/
     // Cria nova matriz para o numero de linhas filtradas
     char ***filtered_matrix = NULL;
      
@@ -1258,57 +1138,7 @@ void ordering (struct arq_csv *csv){
 
     /* ------------ PRINT MATRIZ ORDENADA ---------- */
     
-/*    if (csv->lines <= 10){
-        for (unsigned short i = 0; i < csv->lines; i++){
-            for (unsigned short j = 0; j < csv->columns; j++){
-                unsigned short align = *csv->sizes[j];
-                if (i == 0)
-                    printf(" %*s", align, ordered_matrix[i][j]);
-                else{
-                    if (j == 0){
-                        printf("%ld  %*s  ", v[i-1].id, align, ordered_matrix[i][j]);
-                    }
-                    else
-                        printf("%*s  ", align, ordered_matrix[i][j]);
-                } 
-            }
-            printf("\n");
-        }       
-    }
-
-    else{
-        for (unsigned short i = 0; i < 6; i++){
-            for (unsigned short j = 0; j < csv->columns; j++){
-                unsigned short align = *csv->sizes[j];
-                if (i == 0)
-                    printf(" %*s",align, ordered_matrix[i][j]);
-                else
-                    if (j == 0)
-                        printf("%ld %*s ", v[i-1].id , align, ordered_matrix[i][j]);
-                    else
-                        printf("%*s ", align, ordered_matrix[i][j]); 
-            }
-            printf("\n");
-        }
-
-        for (unsigned short j = 0; j < csv->columns; j++){
-            unsigned short align = *csv->sizes[j];
-            printf("%*s", align, "...");
-        }
-        printf("\n");
-
-        for (unsigned long i = (csv->lines - 5); i < csv->lines; i++){
-            for (unsigned short j = 0; j < csv->columns; j++){
-                unsigned short align = *csv->sizes[j];
-                    if (j == 0)
-                        printf("%ld %*s", v[i-1].id, align, ordered_matrix[i][j]);
-                    else
-                        printf("%*s", align, ordered_matrix[i][j]); 
-            }
-            printf("\n");
-        }
-    }
-*/   
+  
     unsigned long *v_ids = malloc((csv->lines-1) * sizeof(unsigned long));
     for (unsigned long i = 0; i < csv->lines-1; i++)
         v_ids[i] = v[i].id;
@@ -1486,57 +1316,6 @@ void selecao (struct arq_csv *csv){
     
     /* ------------ PRINT MATRIZ SELECIONADA ---------- */
     
-/*    if (csv->lines <= 10){
-        for (unsigned short i = 0; i < csv->lines; i++){
-            for (unsigned short j = 0; j < n_var; j++){
-                unsigned short align = *csv->sizes[j];
-                if (i == 0)
-                    printf(" %*s", align, selected_matrix[i][j]);
-                else{
-                    if (j == 0){
-                        printf("%d  %*s  ", i-1, align, selected_matrix[i][j]);
-                    }
-                    else
-                        printf("%*s  ", align, selected_matrix[i][j]);
-                } 
-            }
-            printf("\n");
-        }       
-    }
-
-    else{
-        for (unsigned short i = 0; i < 6; i++){
-            for (unsigned short j = 0; j < n_var; j++){
-                unsigned short align = *csv->sizes[j];
-                if (i == 0)
-                    printf(" %*s",align, selected_matrix[i][j]);
-                else
-                    if (j == 0)
-                        printf("%d %*s ", i-1 , align, selected_matrix[i][j]);
-                    else
-                        printf("%*s ", align, selected_matrix[i][j]); 
-            }
-            printf("\n");
-        }
-
-        for (unsigned short j = 0; j < n_var; j++){
-            unsigned short align = *csv->sizes[j];
-            printf("%*s", align, "...");
-        }
-        printf("\n");
-
-        for (unsigned long i = (csv->lines - 5); i < csv->lines; i++){
-            for (unsigned short j = 0; j < n_var; j++){
-                unsigned short align = *csv->sizes[j];
-                    if (j == 0)
-                        printf("%ld %*s", i-1, align, selected_matrix[i][j]);
-                    else
-                        printf("%*s", align, selected_matrix[i][j]); 
-            }
-            printf("\n");
-        }
-    }
-*/
     // Vetor com ids, nesse caso, lineares   
     unsigned long *v_ids = malloc((csv->lines-1) * sizeof(unsigned long));
     for (unsigned long i = 0; i < csv->lines-1; i++)
@@ -1681,57 +1460,6 @@ void list_NaN (struct arq_csv *csv){
   
             /* ---- PRINT LINHAS COM NAN -----*/
 
-/*    if (nan_cont+1 <= 10){
-        for (unsigned short i = 0; i < nan_cont+1; i++){
-            for (unsigned short j = 0; j < csv->columns; j++){
-                unsigned short align = *csv->sizes[j];
-                if (i == 0)
-                    printf(" %*s  ", align, nan_matrix[i][j]);
-                else{
-                    if (j == 0){
-                        printf("%lu  %*s  ", v_id[i-1], align, nan_matrix[i][j]);
-                    }
-                    else
-                        printf("%*s  ", align, nan_matrix[i][j]);
-                } 
-            }
-            printf("\n");
-        }       
-    }
-
-    else{
-        for (unsigned short i = 0; i < 6; i++){
-            for (unsigned short j = 0; j < csv->columns; j++){
-                unsigned short align = *csv->sizes[j];
-                if (i == 0)
-                    printf(" %*s",align, nan_matrix[i][j]);
-                else
-                    if (j == 0)
-                        printf("%lu %*s ", v_id[i-1], align, nan_matrix[i][j]);
-                    else
-                        printf("%*s ", align, nan_matrix[i][j]); 
-            }
-            printf("\n");
-        }
-
-        for (unsigned short j = 0; j < csv->columns; j++){
-            unsigned short align = *csv->sizes[j];
-            printf("%*s", align, "...");
-        }
-        printf("\n");
-
-        for (unsigned long i = (nan_cont+1 - 5); i < nan_cont+1; i++){
-            for (unsigned short j = 0; j < csv->columns; j++){
-                unsigned short align = *csv->sizes[j];
-                    if (j == 0)
-                        printf("%lu %*s", v_id[i-1], align, nan_matrix[i][j]);
-                    else
-                        printf("%*s", align, nan_matrix[i][j]); 
-            }
-            printf("\n");
-        }
-    }
-*/ 
   
     print_matrix (nan_matrix, nan_cont+1, csv->columns, v_id, csv->sizes);
 
@@ -1806,30 +1534,6 @@ double calc_media (struct arq_csv *csv, unsigned long column){
             }
         }
 
-        /*
-        // alocando espaço em um vetor para colocar os valores
-        double *values = (double *)malloc(total * sizeof(double));
-        if (values == NULL) {
-            fprintf(stderr, "Erro de alocação de memória.\n");
-            exit(EXIT_FAILURE);
-        }
-    
-        unsigned int index = 0;
-        for (unsigned long i = 1; i < csv->lines; i++){
-            if (strcmp(csv->data[i][column], "NaN") != 0){
-                values[index++] = atof(csv->data[i][column]);
-            }
-        }
-        */
-        
-/*        //--- MÉDIA ---
-        double soma = 0;
-        for (int i = 0; i < total; i++){
-            soma += values[i];
-        }
-        
-      free(values);*/
-
         return soma/total;
 }
 
@@ -1876,6 +1580,58 @@ void change_by_next (struct arq_csv *csv){
   
 void delete_nans (struct arq_csv *csv){
     
+    
+    char buffer[1024];
+    unsigned long n_var = 0;
+
+    // Vetor para armazenar as variaveis escolhidas
+    char **v_var = (char **)malloc(csv->columns * sizeof(char *));
+    if (v_var == NULL) {
+        fprintf(stderr, "Erro de alocação de memória.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i < csv->columns; i++) {
+        v_var[i] = (char *)malloc(30 * sizeof(char)); 
+        if (v_var[i] == NULL) {
+            fprintf(stderr, "Erro de alocação de memória.\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+
+    printf("Entre com a variaveis que deseja selecionar (separadas por espaço): ");
+    fgets(buffer, sizeof(buffer), stdin);
+
+    // coloca as variaveis no vetor de variaveis e conta quantas são
+    char *token = strtok(buffer, " ");
+    while (token != NULL && n_var < csv->columns){
+       
+        if (token[strlen(token) - 1] == '\n')
+            token[strlen(token) - 1] = '\0';
+ 
+        strcpy(v_var[n_var], token);
+        n_var++;
+        token = strtok(NULL, " ");
+    }
+ 
+    // Vetor para identificar quais são as colunas escolhidas
+    int *col_var = malloc(n_var * (sizeof (int)));
+    for (unsigned long i = 0; i < n_var; i++)
+        col_var[i] = -1;
+
+    unsigned long c_var = 0;
+    for (unsigned long j = 0; j < csv->columns; j++){
+        for (unsigned long c = 0; c < n_var; c++){
+            if (strcmp(csv->data[0][j], v_var[c]) == 0){
+                col_var[c_var] = j;
+                c_var++;
+                break;
+            } 
+        }
+    }
+    
+
     // Vetor para identificar quais linhas NAO tem NaN
     int *v_not_nan = malloc(csv->lines * (sizeof (int)));
     for (unsigned long i = 0; i < csv->lines; i++)
@@ -1886,8 +1642,8 @@ void delete_nans (struct arq_csv *csv){
     unsigned long not_nan_cont = 0;
     for (unsigned long i = 0; i < csv->lines; i++){
         int nan_found = 0;
-        for (unsigned long j = 0; j < csv->columns; j++){
-            if (strcmp(csv->data[i][j], "NaN") == 0){
+        for (unsigned long j = 0; j < n_var; j++){
+            if (strcmp(csv->data[i][col_var[j]], "NaN") == 0){
                 nan_found = 1;
                 break;
             }
@@ -1954,6 +1710,14 @@ void delete_nans (struct arq_csv *csv){
 
     free(v_not_nan);
 
+    // Libera vetor das variaveis
+    for (unsigned long i = 0; i < csv->columns; i++){
+        free(v_var[i]);
+    }
+    free(v_var);
+
+    free(col_var);
+ 
     // Nova matriz 'original'
     csv->data = not_nan_matrix;
     csv->lines = not_nan_cont;
